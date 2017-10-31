@@ -8,5 +8,3 @@ Components:
 * [4x4 Matrix Keypad](https://www.parallax.com/sites/default/files/downloads/27899-4x4-Matrix-Membrane-Keypad-v1.2.pdf)
 * [SN74HC595 8-Bit Shift Register](http://www.ti.com/lit/ds/symlink/sn74hc595.pdf)
 * [220 Ohms 5% Resistor](https://www.amazon.com/Projects-Resistors-Watt-Choose-Quantity/dp/B071VJNRW9)
-  ![red red brown gold](https://images-na.ssl-images-amazon.com/images/I/41PGLUlslDL.jpg)
-
