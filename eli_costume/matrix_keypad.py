@@ -42,7 +42,7 @@ class keypad():
             self.COLUMN = cols
 
     def watch(self, downFn=None, pressFn=None):
-        self._thread = threading.Thread(target=self._watch, kwargs={"pressFn":pressFn, "downFn":downFn}, name="Keypad-%d")
+        self._thread = threading.Thread(target=self._watch, kwargs={"pressFn":pressFn, "downFn":downFn}, name="Keypad")
         self._thread.start()
 
     def _watch(self, downFn=None, pressFn=None):
