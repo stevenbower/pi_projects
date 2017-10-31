@@ -5,7 +5,7 @@ import time
 import threading
 import random
 
-led_configs = [
+LED_CONFIGS = [
     {
         "sdi": 11,
         "rclk": 12,
@@ -19,6 +19,21 @@ led_configs = [
         "count": 4,
     },
 
+]
+
+LED_MAPPING = [
+    2,
+    11,
+    7,
+    8,
+    3,
+    0,
+    4,
+    6,
+    5,
+    10,
+    9,
+    1,
 ]
 
 #SDI   = 11
@@ -58,23 +73,18 @@ class LedManager(object):
         return self._getDriverOffset(self.mapping[bulbIdx])
 
     def _getDriverOffset(self, bulbIdx):
-        print "IDX: ", bulbIdx
         for driver in self.drivers:
-            print "DRIVER: ", driver.count, bulbIdx
             if bulbIdx >= driver.count:
-                print "XXX"
                 bulbIdx = bulbIdx - driver.count
             else:
                 return driver, bulbIdx
 
     def on(self, bulbIdx, flush=True):
         driver, idx = self._getMappedDriverOffset(bulbIdx)
-        print bulbIdx, idx
         driver.on(idx, flush=flush)
 
     def off(self, bulbIdx, flush=True):
         driver, idx = self._getMappedDriverOffset(bulbIdx)
-        print bulbIdx, idx
         driver.off(idx, flush=flush)
 
     def flush(self):
@@ -170,6 +180,7 @@ class Costume(object):
         self.keypad = None
         self.kpThread = None
         self.leds = None
+        self.rotateIdx = 0
 
     def setup(self):
         if self.keypad == None and self.leds == None:
@@ -180,24 +191,11 @@ class Costume(object):
             self.keypad.watch(pressFn=self.keypress)
 
         if self.leds == None:
-            mapping = [
-                2,
-                11,
-                7,
-                8,
-                9,
-                10,
-                0,
-                1,
-                3,
-                4,
-                5,
-                6,
-            ]
-            self.leds = LedManager(led_configs, mapping)
+            self.leds = LedManager(LED_CONFIGS, LED_MAPPING)
             self.leds.setup()
 
     def effect_led_cycle(self, checkFn):
+        print "Starting Effect: LED Cycle"
         while checkFn():
             for i in range(0, self.leds.count):
                 self.leds.allOff(flush=False)
@@ -205,18 +203,20 @@ class Costume(object):
                 time.sleep(0.05)
 
     def effect_night_rider(self, checkFn):
+        print "Starting Effect: Night Rider"
         while checkFn():
             for i in range(0, self.leds.count):
                 self.leds.allOff(flush=False)
                 self.leds.on(i)
-                time.sleep(0.1)
+                time.sleep(0.05)
 
             for i in range(self.leds.count-1, -1, -1):
                 self.leds.allOff(flush=False)
                 self.leds.on(i)
-                time.sleep(0.1)
+                time.sleep(0.05)
 
     def effect_starry_night(self, checkFn, delay):
+        print "Starting Effect: Starry Night"
         while checkFn():
             idx = random.randint(0, self.leds.count-1) 
             state = random.randint(0, 1) 
@@ -226,7 +226,37 @@ class Costume(object):
                 self.leds.off(idx)
             time.sleep(delay)
 
+    def effect_heart(self, checkFn):
+        print "Starting Effect: Heart"
+        pattern = [
+            [0],
+            [1,11],
+            [2,10],
+            [3,9],
+            [4,8],
+            [5,7],
+            [5,7],
+            [6],
+        ]
+        while checkFn():
+            for stage in pattern:
+                self.leds.allOff(flush=False)
+                for idx in stage:
+                    self.leds.on(idx,flush=False)
+                self.leds.flush()
+                time.sleep(0.1)
+
+            for stage in reversed(pattern[1:-1]):
+                self.leds.allOff(flush=False)
+                for idx in stage:
+                    self.leds.on(idx,flush=False)
+                self.leds.flush()
+                time.sleep(0.1)
+
+            time.sleep(0.1)
+
     def effect_fader(self, checkFn):
+        print "Starting Effect: Fader"
         while checkFn():
             for x in range(0, self.leds.count):
                 bulbs = [x]
@@ -260,7 +290,7 @@ class Costume(object):
         if self.leds.running():
             self.leds.stop()
 
-        print key
+        print "Key Press: %s" % key
         if key == "*":
             self.leds.allOff()
         elif key == "#":
@@ -270,12 +300,17 @@ class Costume(object):
         elif key == "B":
             self.leds.start(self.effect_night_rider)
         elif key == "C":
-            self.leds.start(self.effect_starry_night, 0.1)
+            self.leds.start(self.effect_starry_night, 0.05)
         elif key == "D":
-            self.leds.start(self.effect_fader)
-        #elif key == 0:
-            #self.leds.start(self.effect_starry_night, 0.001)
-        #elif key == 1:
+            #self.leds.start(self.effect_fader)
+            self.leds.start(self.effect_heart)
+        elif key == 0:
+            print "Effect: Rotate"
+            self.rotateIdx += 1
+            if self.rotateIdx >= self.leds.count:
+                self.rotateIdx = 0
+            self.leds.allOff()
+            self.leds.on(self.rotateIdx)
         else:
             self.leds.on(int(key)-1)
 
